@@ -124,16 +124,16 @@ export default function RecipesPage() {
               <button
                 onClick={() => toggleFavorite(r)}
                 aria-label={r.isFavorite ? "Unfavorite" : "Favorite"}
-                className={`absolute right-4 top-4 z-10 text-xl drop-shadow ${r.isFavorite ? "text-honey" : "text-white/90 hover:text-honey"}`}
+                className={`absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/45 text-base backdrop-blur-sm transition-colors hover:bg-black/60 ${r.isFavorite ? "text-honey" : "text-white"}`}
               >
                 {r.isFavorite ? "★" : "☆"}
               </button>
               <button
                 onClick={() => setConfirmId(r.id)}
                 aria-label="Delete recipe"
-                className="absolute left-4 top-4 z-10 text-white/90 drop-shadow transition-colors hover:text-berry"
+                className="absolute left-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-berry"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6" />
                 </svg>
               </button>
