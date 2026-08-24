@@ -3,7 +3,7 @@
 // My recipes — library. Saved recipes, favorite toggle, search + filter (§4).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { getRecipes, saveRecipe } from "@/lib/storage";
+import { getRecipes, saveRecipe, deleteRecipe } from "@/lib/storage";
 import { filterRecipes } from "@/lib/filter";
 import type { Recipe } from "@/lib/types";
 
@@ -16,6 +16,7 @@ export default function RecipesPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [maxCookTime, setMaxCookTime] = useState<number | undefined>();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     getRecipes().then((r) => {
@@ -41,6 +42,11 @@ export default function RecipesPage() {
     const updated = { ...r, isFavorite: !r.isFavorite };
     await saveRecipe(updated);
     setRecipes((cur) => cur.map((x) => (x.id === r.id ? updated : x)));
+  }
+  async function removeRecipe(id: string) {
+    await deleteRecipe(id);
+    setRecipes((cur) => cur.filter((x) => x.id !== id));
+    setConfirmId(null);
   }
 
   if (loaded && recipes.length === 0)
@@ -122,6 +128,33 @@ export default function RecipesPage() {
               >
                 {r.isFavorite ? "★" : "☆"}
               </button>
+              <button
+                onClick={() => setConfirmId(r.id)}
+                aria-label="Delete recipe"
+                className="absolute left-4 top-4 z-10 text-white/90 drop-shadow transition-colors hover:text-berry"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                  <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v6M14 11v6" />
+                </svg>
+              </button>
+
+              {confirmId === r.id && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-[1.75rem] bg-white/95 p-4 text-center backdrop-blur">
+                  <p className="font-bold text-ink">Delete this recipe?</p>
+                  <p className="-mt-1 text-sm text-ink-soft">This can&apos;t be undone.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => removeRecipe(r.id)}
+                      className="rounded-full bg-berry px-4 py-2 text-sm font-bold text-white shadow-[0_6px_14px_-6px_rgba(255,92,138,0.7),inset_0_1px_1px_rgba(255,255,255,0.4)]"
+                    >
+                      Delete
+                    </button>
+                    <button onClick={() => setConfirmId(null)} className="clay-chip px-4 py-2 text-sm font-semibold">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="mb-3 h-28 overflow-hidden rounded-[1.25rem] bg-[linear-gradient(135deg,#ffe0c8,#ffd0dd)]">
                 {r.sourceThumbnail && (
                   // eslint-disable-next-line @next/next/no-img-element
