@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 // Installable PWA — "Add to Home Screen" gives an app-like, standalone shell.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Foodie — capture recipes, build your weekly shop",
-    short_name: "Foodie",
+    name: "ClipDish — clip cooking videos into recipes",
+    short_name: "ClipDish",
     description: "Paste a cooking-video link, get a structured recipe, build your weekly shopping list.",
     start_url: "/",
     display: "standalone",

@@ -9,9 +9,9 @@ const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--ff-displa
 const body = Hanken_Grotesk({ subsets: ["latin"], variable: "--ff-body" });
 
 export const metadata: Metadata = {
-  title: "Foodie — capture recipes, build your weekly shop",
+  title: "ClipDish — clip cooking videos into recipes",
   description: "Paste a cooking-video link, get a structured recipe, build your weekly shopping list.",
-  appleWebApp: { capable: true, title: "Foodie", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "ClipDish", statusBarStyle: "default" },
   icons: { icon: "/favicon.png", apple: "/apple-icon.png" },
 };
 
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <header className="print:hidden">
           <div className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-4">
             <Link href="/" className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight text-ink">
-              <span className="text-2xl">🥘</span> Foodie
+              <span className="text-2xl">🥘</span> ClipDish
             </Link>
             <nav className="hidden gap-1 text-sm font-medium sm:flex">
               {nav.map((n) => (
