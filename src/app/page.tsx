@@ -1,69 +1,114 @@
-import Image from "next/image";
+"use client";
+
+// Home / Paste link — entry point. Paste a link → extract → review in recipe view.
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { saveDraft } from "@/lib/storage";
+import type { Recipe } from "@/lib/types";
 
 export default function Home() {
+  const [url, setUrl] = useState("");
+  const [mode, setMode] = useState<"auto" | "video" | "web">("auto");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function go(e: React.FormEvent) {
+    e.preventDefault();
+    if (!url.trim() || loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/extract", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url, kind: mode === "auto" ? undefined : mode }),
+      });
+      if (!res.ok) throw new Error("extract failed");
+      const recipe = (await res.json()) as Recipe;
+      await saveDraft(recipe); // persist immediately — never lose the capture (§8)
+      router.push(`/recipe/${recipe.id}`);
+    } catch {
+      setError("Couldn't read that link. Check it and try again.");
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <section className="mx-auto max-w-xl pt-4 text-center sm:pt-10">
+      <p className="text-xs font-bold uppercase tracking-[0.25em] text-tangerine">Capture anything</p>
+      <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] sm:text-5xl">
+        Paste a link.
+        <br />
+        Get a real recipe.
+      </h1>
+      <p className="mx-auto mt-4 max-w-md text-ink-soft">
+        Turn a cooking reel, TikTok, or recipe page into a clean, editable recipe — ingredients, steps and all.
+      </p>
+
+      {/* The capture bar — the signature clay object. */}
+      <div className="clay mt-8 p-4 text-left sm:p-5">
+        <form onSubmit={go} className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…"
+            className="clay-sunk min-w-0 flex-1 px-4 py-3 text-base"
+            disabled={loading}
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="clay-btn-primary px-6 py-3 font-bold"
+            disabled={loading || !url.trim()}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {loading ? "Reading…" : "Get recipe"}
+          </button>
+        </form>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+          {(["auto", "video", "web"] as const).map((m) => {
+            const on = mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                aria-pressed={on}
+                className={
+                  on
+                    ? "rounded-full bg-tangerine px-4 py-1.5 text-xs font-bold capitalize text-white shadow-[0_6px_14px_-6px_rgba(255,90,40,0.6),inset_0_1px_1px_rgba(255,255,255,0.4)]"
+                    : "clay-chip px-4 py-1.5 text-xs font-semibold capitalize"
+                }
+              >
+                {m === "web" ? "Web page" : m}
+              </button>
+            );
+          })}
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Extraction takes a few seconds (reading the video + asking an LLM). */}
+      {loading && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-5 flex items-center justify-center gap-3 text-sm font-medium text-ink-soft"
+        >
+          <span className="h-4 w-4 animate-spin rounded-full border-[3px] border-white/70 border-t-tangerine" />
+          Reading that link — this can take a few seconds.
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="mt-4 rounded-2xl bg-berry/12 px-4 py-2.5 text-sm font-medium text-berry">
+          {error}
+        </p>
+      )}
+
+      <p className="mt-4 text-xs text-ink-soft/80">
+        Auto-detects from the link — override above if it guesses wrong.
+      </p>
+    </section>
   );
 }

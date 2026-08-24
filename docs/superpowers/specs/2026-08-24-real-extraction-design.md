@@ -45,9 +45,9 @@ interface SourceContent {
 Claude call uses the official `@anthropic-ai/sdk` (per the claude-api skill:
 default to the SDK when one exists — also gives retries + typed errors +
 structured-output helpers), reading `ANTHROPIC_API_KEY` from env. Missing key →
-degrade to shell + warning (dev runs keyless). Model defaults to `claude-opus-5`
-(skill default), overridable via `FOODIE_EXTRACT_MODEL` — a cheaper model
-(Haiku 4.5 / Sonnet 5) is the likely right call for this high-volume path.
+degrade to shell + warning (dev runs keyless). Model defaults to `claude-haiku-4-5`
+(chosen for this high-volume path's economics), overridable via
+`FOODIE_EXTRACT_MODEL` (e.g. `claude-sonnet-5`) if quality needs more.
 HTML/JSON-LD/OG parsing is regex, no cheerio/jsdom. One new package: the SDK.
 
 ## Never lose the capture
