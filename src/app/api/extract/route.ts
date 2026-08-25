@@ -10,6 +10,10 @@ import type { SourceContent } from "@/lib/extract/types";
 // detect → adapter → structure → Recipe. Content failures never 500: they come
 // back as a usable Recipe shell so the capture is never lost.
 
+// A proxied fetch + an LLM call can take a while; the platform default (10s on
+// Vercel Hobby) is too tight. 60s is the Hobby ceiling.
+export const maxDuration = 60;
+
 function adapterFor(kind: SourceKind): (url: string) => Promise<SourceContent> {
   switch (kind) {
     case "youtube":

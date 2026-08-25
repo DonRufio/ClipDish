@@ -5,6 +5,8 @@
 // to need maintenance. Any failure returns undefined and the caller degrades
 // (recipe still extracts from the description, just without spoken steps).
 
+import { proxiedFetch } from "./http";
+
 // YouTube's long-standing public InnerTube web key (shipped in youtube.com HTML;
 // not a secret).
 const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
@@ -20,7 +22,7 @@ interface PlayerResponse {
 
 export async function fetchYoutubeTranscript(videoId: string): Promise<string | undefined> {
   try {
-    const player = (await fetch(
+    const playerRes = await proxiedFetch(
       `https://www.youtube.com/youtubei/v1/player?key=${INNERTUBE_KEY}`,
       {
         method: "POST",
@@ -32,13 +34,15 @@ export async function fetchYoutubeTranscript(videoId: string): Promise<string | 
           },
         }),
       },
-    ).then((r) => (r.ok ? r.json() : undefined))) as PlayerResponse | undefined;
+    );
+    const player = (playerRes?.ok ? await playerRes.json() : undefined) as PlayerResponse | undefined;
 
     const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
     if (!tracks?.length) return undefined;
     const track = tracks.find((t) => t.languageCode?.startsWith("en")) ?? tracks[0];
 
-    const xml = await fetch(track.baseUrl).then((r) => (r.ok ? r.text() : undefined));
+    const xmlRes = await proxiedFetch(track.baseUrl);
+    const xml = xmlRes?.ok ? await xmlRes.text() : undefined;
     if (!xml) return undefined;
     const text = parseTimedText(xml);
     return text ? text.slice(0, MAX_CHARS) : undefined;
